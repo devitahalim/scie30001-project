@@ -74,7 +74,7 @@ for i in range(len(r)):
     print(c)
     
 for i in range(len(r)):
-    ax0.scatter(X_total[i],0,c='red',s=100)
+    ax0.scatter(X_total[i],0,c=np.array([r[i][0],r[i][1]]),s=100)
 
 #Plotting the Gaussian
 for g,c in zip([gaus_1.pdf(np.sort(X_total).reshape(40,1)),gaus_2.pdf(np.sort(X_total).reshape(40,1))],['r','b']):
