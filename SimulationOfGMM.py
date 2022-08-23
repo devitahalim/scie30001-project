@@ -25,3 +25,4 @@ def SimulateGMM(n, mean1, sig1, mean2, sig2):
     plt.legend()
 
     plt.show()
+    return(X)
