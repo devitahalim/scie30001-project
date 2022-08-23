@@ -1,13 +1,14 @@
 import matplotlib.pyplot as plt
 from PdfGaussian import GaussianPDF
-from GenerateGMMDataset import GMMData
 import numpy as np
 from scipy.stats import multivariate_normal
 
 
 
 def SimulateGMM(n, mean1, sig1, mean2, sig2):
-    X=GMMData(n,mean1, sig1, mean2, sig2)
+    X1=np.random.normal(mean1,np.sqrt(sig1),n)
+    X2=np.random.normal(mean2,np.sqrt(sig2),n)
+    X = np.array(list(X1) + list(X2))
     np.random.shuffle(X)
     
     #Plot the Gaussian and the data points
@@ -24,4 +25,3 @@ def SimulateGMM(n, mean1, sig1, mean2, sig2):
     plt.legend()
 
     plt.show()
-    return(X)
