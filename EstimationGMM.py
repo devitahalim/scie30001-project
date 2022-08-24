@@ -49,6 +49,6 @@ def GaussianEM(X,k:int,n_iteration:int):
 
     var_total=np.column_stack((var_one, var_two))
     
-    return(means_total,var_total,n_iteration)
+    return[means_total,var_total,n_iteration]
 
 GaussianEM(SimulateGMM(100,10,4,-5,3),2,15)
