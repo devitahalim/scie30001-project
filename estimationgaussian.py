@@ -1,9 +1,7 @@
-from statistics import mean
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
-from PdfGaussian import GaussianPDF
-from SimulationOfGMM import SimulateGMM
+from gaussianfunctions import GaussianPDF
 
 def GaussianEM(X,k:int,n_iteration:int):
     means=np.random.choice(X, k)
@@ -12,6 +10,7 @@ def GaussianEM(X,k:int,n_iteration:int):
     X=np.array(X)
 
     epsilon=1e-9
+    
     means_all=[]
     var_all=[]
 
@@ -50,5 +49,3 @@ def GaussianEM(X,k:int,n_iteration:int):
     var_total=np.column_stack((var_one, var_two))
     
     return[means_total,var_total,n_iteration]
-
-GaussianEM(SimulateGMM(100,10,4,-5,3),2,15)

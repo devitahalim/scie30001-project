@@ -1,9 +1,9 @@
 from statistics import variance
 import matplotlib.pyplot as plt
 import numpy as np
-from PdfGaussian import GaussianPDF
+from pdfgaussian import GaussianPDF
 from SimulationOfGMM import SimulateGMM
-from EstimationGMM import GaussianEM
+from estimationgaussian import GaussianEM
 
 def PlotGMM(X,means,variances,n_iteration,plot:int):
     gmm_datapoints=np.linspace(np.min(X),np.max(X),100)

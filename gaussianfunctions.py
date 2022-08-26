@@ -1,9 +1,34 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.stats import multivariate_normal
-from pdfgaussian import GaussianPDF
 
-def GaussianEMPlot(X,k:int,n_iteration:int):
+def GaussianPDF(data, mean:float, var:float):
+    pdf_gauss=(1/(np.sqrt(2*np.pi*var)))*np.exp(-(np.square(data - mean)/(2*var)))
+    return pdf_gauss
+
+def SimulateGMM(n:int, mean1:float, sig1:float, mean2:float, sig2:float):
+    X1=np.random.normal(mean1,np.sqrt(sig1),n)
+    X2=np.random.normal(mean2,np.sqrt(sig2),n)
+    X = np.array(list(X1) + list(X2))
+    np.random.shuffle(X)
+    
+    #Plot the Gaussian and the data points
+    gmm_datapoints=np.linspace(np.min(X),np.max(X),100)
+    plt.figure(figsize=(7,4))
+
+    plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
+    plt.plot(gmm_datapoints, GaussianPDF(gmm_datapoints, mean1, sig1), color='black', label="True pdf")
+    plt.plot(gmm_datapoints, GaussianPDF(gmm_datapoints, mean2, sig2), color='black')
+    
+    #Set the x and y label
+    plt.xlabel=("x")
+    plt.ylabel=("Probability Density Function (PDF)")
+    plt.legend()
+
+    plt.show()
+    return(X)
+
+def GaussianEMPlot(X,k:int,n_iteration:int, iter_plot:int):
     means=np.random.choice(X, k)
     variances=np.random.random_sample(size=k)
     weights=np.ones((k))/k
@@ -14,8 +39,8 @@ def GaussianEMPlot(X,k:int,n_iteration:int):
     
 
     for iteration in range(n_iteration):
-        if iteration%5==0:
-            plt.figure(figsize=(8,5))
+        if iteration%iter_plot==0:
+            plt.figure(figsize=(7,4))
             plt.title("Iteration {}".format(iteration))
             plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
                 
@@ -26,7 +51,7 @@ def GaussianEMPlot(X,k:int,n_iteration:int):
             #Set the x and y label
             plt.xlabel=("x")
             plt.ylabel=("Probability Density Function (PDF)")
-            plt.legend(loc="upper left")
+            plt.legend()
 
             plt.show()
         #Maximum likelihood of each x_i
