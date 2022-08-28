@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
-from pdfgaussian import GaussianPDF
+from gaussianfunctions import GaussianPDF
 
 def GaussianEMPlot(X,k:int,n_iteration:int):
     means=np.random.choice(X, k)
