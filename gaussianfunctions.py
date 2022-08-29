@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import multivariate_normal
+from sklearn.mixture import GaussianMixture
 
 def GaussianPDF(data, mean:float, var:float):
     pdf_gauss=(1/(np.sqrt(2*np.pi*var)))*np.exp(-(np.square(data - mean)/(2*var)))
@@ -100,3 +101,22 @@ def PlotGMM(X,means,variances,n_iteration:int, n_components:int,iter_plot:int):
             plt.legend(loc="upper left")
 
             plt.show()
+
+def BIC_gmm(X):
+    X.reshape(-1,1)
+    n_components=np.arange(1, 11)
+
+    gmm_models=[None for k in range(len(n_components))]
+    for k in range(len(n_components)):
+        gmm_models[k]=(GaussianMixture(n_components[k]).fit(X))
+
+    for models in gmm_models:
+        BIC=[models.bic(X)]
+    
+    plt.figure(figsize=(8,5))
+    plt.title("The Gradient of BIC")
+    plt.plot(n_components,BIC)
+    plt.xlabel=("Number of Distribution")
+    plt.ylabel=("Gradient of BIC")
+    plt.legend()
+    plt.show()
