@@ -4,9 +4,9 @@ from scipy.stats import multivariate_normal
 from gaussianfunctions import GaussianPDF
 
 def GaussianEMPlot(X,k:int,n_iteration:int):
-    means=np.random.choice(X, k)
-    variances=np.random.random_sample(size=k)
-    weights=np.ones((k))/k
+    means=[1,2,5]
+    variances=[1e-5,1e-5,1e-5]
+    weights=[1/3,1/3,1/3]
     X=np.array(X)
 
     epsilon=1e-9

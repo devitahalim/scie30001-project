@@ -4,119 +4,146 @@ from scipy.stats import multivariate_normal
 from sklearn.mixture import GaussianMixture
 
 def GaussianPDF(data, mean:float, var:float):
+
     pdf_gauss=(1/(np.sqrt(2*np.pi*var)))*np.exp(-(np.square(data - mean)/(2*var)))
     return pdf_gauss
 
 def SimulateGMM(n:int, mean1:float, sig1:float, mean2:float, sig2:float):
+
     X1=np.random.normal(mean1,np.sqrt(sig1),n)
     X2=np.random.normal(mean2,np.sqrt(sig2),n)
     X = np.array(list(X1) + list(X2))
     np.random.shuffle(X)
+
     return(X)
 
-def GaussianEM(X,n_components:int):
-    means=np.random.choice(X, n_components)
-    variances=np.random.random_sample(size=n_components)
-    weights=np.ones((n_components))/n_components
-    X=np.array(X)
+def PlotTrue(X,mean,sd):
 
-    epsilon=1e-8 #to avoid singularities
+    gmm_datapoints = np.linspace(np.min(X),np.max(X),100)
+
+    plt.figure(figsize=(8,5))
+    plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
+    
+    for i in range(len(mean)):
+        plt.plot(gmm_datapoints, GaussianPDF(gmm_datapoints, mean[i], sd[i]), color='black', label="True pdf {}".format(i))
+    plt.xlabel('$x$')
+    plt.ylabel('pdf')
+    plt.legend()
+    plt.show()
+
+def GaussianEM(X,n_components:int, initial_param):
+    
+    if initial_param==[]:
+        initial_param=list()
+        for i in range(n_components):
+            init_params={
+            'Mean':np.random.choice(X),
+            'Variance': 0.1,
+            'Weight': (1/n_components)
+        }
+            initial_param.append(init_params)
+
+    epsilon=-1e-5 #to avoid singularities
     #stopping condition
     mean_delta=1e-4 
     var_delta=1e-2
     weight_delta=1e-8
 
-    max_iteration=10000
+    max_iteration=50
     iteration=0
-    means_all=[]
-    var_all=[]
-    weights_all=[]
+
+    iteration_param=list()
 
     while iteration<max_iteration:
+        
         px_j=[]
         for j in range(n_components):
-            px_j.append(GaussianPDF(X, means[j], np.sqrt(variances[j])))
+            px_j.append(GaussianPDF(X, initial_param[j]['Mean'], np.sqrt(initial_param[j]['Variance'])))
         px_j = np.array(px_j)
         
         posterior = []
-        means_new=[]
-        variances_new=[]
-        weights_new=[]
+        new_parameters=list()
         for j in range(n_components):
             #Calculate the probabilities of each data to belong from either gaussian  
-            posterior.append((px_j[j] * weights[j]) / (np.sum([px_j[i] * weights[i] for i in range(n_components)], axis=0)+epsilon))
+            posterior.append((px_j[j] * initial_param[j]['Weight']) / (np.sum([px_j[i] * initial_param[i]['Weight'] for i in range(n_components)], axis=0)+epsilon))
         
         #Maximisation step (M-step):
             #Update the parameters
-            means_new.append(np.sum(posterior[j] * X) / (np.sum(posterior[j]+epsilon)))
-            means_all.append(means_new)
-            
-            variances_new.append(np.sum(posterior[j] * np.square(X - means[j])) / (np.sum(posterior[j]+epsilon)))
-            var_all.append(variances_new)
-            
-            weights_new.append(np.mean(posterior[j]))
-            weights_all.append(weights_new)
-        if np.all(np.abs(np.subtract((means_new),(means))))<mean_delta\
-            or np.all(np.abs(np.subtract((variances_new),(variances))))<var_delta\
-            or np.all(np.abs(np.subtract((weights_new),(weights))))<weight_delta :
+            new_param={
+                'Mean':np.sum(posterior[j] * X) / (np.sum(posterior[j]+epsilon)),
+                'Variance':np.sum(posterior[j] * np.square(X - initial_param[j]['Mean'])) / (np.sum(posterior[j]+epsilon)),
+                'Weight':np.mean(posterior[j])
+            }
+            new_parameters.append(new_param)
+        #Calculate difference between parameters
+        mean_diff=list()
+        for i in range (n_components):
+            mean_diff_indiv=(abs(new_parameters[i]['Mean']-initial_param[i]['Mean'])/abs(initial_param[i]['Mean']))
+            mean_diff.append(mean_diff_indiv)
+
+        var_diff=list()
+        for i in range(n_components):
+            var_diff_indiv=(abs(new_parameters[i]['Variance']-initial_param[i]['Variance'])/abs(initial_param[i]['Variance']))
+            var_diff.append(var_diff_indiv)
+
+        weight_diff=list()
+        for i in range(n_components):
+            weight_diff_indv=(abs(new_parameters[i]['Weight']-initial_param[i]['Weight'])/abs(initial_param[i]['Weight']))
+            weight_diff.append(weight_diff_indv)
+        
+        def check_less_than(list, value): 
+            for x in list: 
+                if value <= x: 
+                    return False
+            return True
+
+        if check_less_than(mean_diff,mean_delta) is True\
+            and check_less_than(var_diff,var_delta) is True\
+            and check_less_than(weight_diff, weight_delta) is True:
             break
         iteration+=1
-        means=means_new
-        variances=variances_new
-        weights=weights_new
-    
-    #Make an array of all means and variance
-    means_all=np.array(means_all)
-    var_all=np.array(var_all)
+        initial_param=new_parameters
 
-    #Seperate the means and variances of each component and then combine them again into n_component
-    #number of column
-    means_one=means_all[::2]
-    means_two=means_all[1::2]
-    means_total=np.column_stack((means_one,means_two))
+        iteration_param.append(new_parameters)
+    return(iteration_param)
 
-    var_one=var_all[::2]
-    var_two=var_all[1::2]
-    var_total=np.column_stack((var_one, var_two))
-    
-    return means_total,var_total, iteration, n_components
-
-def PlotGMM(X,means,variances,n_iteration:int, n_components:int,iter_plot:int):
-    c=['red','green','blue']
+def PlotGMM(X,iteration_data,plotper_iter:int):
+    c=['red','green','blue','magenta']
     gmm_datapoints=np.linspace(np.min(X),np.max(X),100)
-    for i in range(n_iteration):
-        if i%iter_plot==0:
+    for i in range(len(iteration_data)):
+        if i%plotper_iter==0:
             #Set figure size, title, and plot the data points
             plt.figure(figsize=(8,5))
             plt.title("Iteration {}".format(i))
             plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
             
             #Plot the estimated pdf
-            for k in range(n_components):
-                plt.plot(gmm_datapoints, GaussianPDF(gmm_datapoints, means[i][k], variances[i][k]), color=c[k], label="Distribution {}".format(k))
+            for k in range(len(iteration_data[i])):
+                plt.plot(gmm_datapoints, GaussianPDF(gmm_datapoints, iteration_data[i][k]['Mean'], iteration_data[i][k]['Variance']), color=c[k], label="Distribution {}".format(k))
             
             #Set the x and y label
-            plt.xlabel=("x")
-            plt.ylabel=("Probability Density Function (PDF)")
+            plt.xlabel("x")
+            plt.ylabel("Probability Density Function (PDF)")
             plt.legend(loc="upper left")
 
             plt.show()
 
 def BIC_gmm(X):
-    X.reshape(-1,1)
+    X=X.reshape(-1,1)
     n_components=np.arange(1, 11)
 
     gmm_models=[None for k in range(len(n_components))]
     for k in range(len(n_components)):
         gmm_models[k]=(GaussianMixture(n_components[k]).fit(X))
 
-    for models in gmm_models:
-        BIC=[models.bic(X)]
-    
+    BIC=[models.bic(X) for models in gmm_models]
+
     plt.figure(figsize=(8,5))
-    plt.title("The Gradient of BIC")
+    plt.title("BIC")
     plt.plot(n_components,BIC)
-    plt.xlabel=("Number of Distribution")
-    plt.ylabel=("Gradient of BIC")
-    plt.legend()
+
+    plt.xlabel("Number of Distribution")
+    plt.ylabel("BIC Score")
+
     plt.show()
+    return ((BIC.index(np.amin(BIC)))+1)
