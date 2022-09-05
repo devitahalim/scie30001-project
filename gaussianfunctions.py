@@ -39,14 +39,14 @@ def GaussianEM(X,n_components:int, initial_param):
             init_params={
             'Mean':np.random.choice(X),
             'Variance': 0.1,
-            'Weight': (1/n_components)
+            'Weight': 1/n_components
         }
             initial_param.append(init_params)
 
     epsilon=-1e-5 #to avoid singularities
     #stopping condition
-    mean_delta=1e-4 
-    var_delta=1e-2
+    mean_delta=1e-6
+    var_delta=1e-4
     weight_delta=1e-8
 
     max_iteration=50
@@ -58,7 +58,7 @@ def GaussianEM(X,n_components:int, initial_param):
         
         px_j=[]
         for j in range(n_components):
-            px_j.append(GaussianPDF(X, initial_param[j]['Mean'], np.sqrt(initial_param[j]['Variance'])))
+            px_j.append(GaussianPDF(X, initial_param[j]['Mean'], initial_param[j]['Variance']))
         px_j = np.array(px_j)
         
         posterior = []
