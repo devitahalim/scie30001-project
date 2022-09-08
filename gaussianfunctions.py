@@ -145,5 +145,5 @@ def BIC_gmm(X):
     plt.xlabel("Number of Distribution")
     plt.ylabel("BIC Score")
 
-    plt.show()
+    # plt.show()
     return ((BIC.index(np.amin(BIC)))+1)
