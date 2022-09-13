@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import multivariate_normal
 from sklearn.mixture import GaussianMixture
+import pandas as pd
 
 def GaussianPDF(data, mean:float, var:float):
 
-    pdf_gauss=(1/(np.sqrt(2*np.pi*var)))*np.exp(-(np.square(data - mean)/(2*var)))
+    pdf_gauss=(1/(np.sqrt(2*np.pi*abs(var))))*np.exp(-(np.square(data - mean)/(2*var)))
     return pdf_gauss
 
 def SimulateGMM(n:int, mean1:float, sig1:float, mean2:float, sig2:float):
@@ -34,16 +35,22 @@ def PlotTrue(X,mean,sd):
 def GaussianEM(X,n_components:int, initial_param):
     
     if initial_param==[]:
+        def get_spaced_elm(X, n_components):
+            spaced_elm = X[np.round(np.linspace(0, len(X)-1, n_components)).astype(int)]
+            return spaced_elm
+        
+        initial_means=get_spaced_elm(np.sort(X),n_components)
+        
         initial_param=list()
         for i in range(n_components):
             init_params={
-            'Mean':np.random.choice(X),
+            'Mean':initial_means[i],
             'Variance': 0.1,
             'Weight': 1/n_components
         }
             initial_param.append(init_params)
 
-    epsilon=-1e-5 #to avoid singularities
+    epsilon=-1e-6 #to avoid singularities
     #stopping condition
     mean_delta=1e-6
     var_delta=1e-4
@@ -78,7 +85,7 @@ def GaussianEM(X,n_components:int, initial_param):
         #Calculate difference between parameters
         mean_diff=list()
         for i in range (n_components):
-            mean_diff_indiv=(abs(new_parameters[i]['Mean']-initial_param[i]['Mean'])/abs(initial_param[i]['Mean']))
+            mean_diff_indiv=(abs(new_parameters[i]['Mean']-initial_param[i]['Mean'])/(abs(initial_param[i]['Mean']+epsilon)))
             mean_diff.append(mean_diff_indiv)
 
         var_diff=list()
@@ -124,6 +131,7 @@ def PlotGMM(X,iteration_data,plotper_iter:int):
             #Set the x and y label
             plt.xlabel("x")
             plt.ylabel("Probability Density Function (PDF)")
+            plt.ylim(0,15)
             plt.legend(loc="upper left")
 
             plt.show()
@@ -138,12 +146,37 @@ def BIC_gmm(X):
 
     BIC=[models.bic(X) for models in gmm_models]
 
-    plt.figure(figsize=(8,5))
-    plt.title("BIC")
-    plt.plot(n_components,BIC)
+    # plt.figure(figsize=(8,5))
+    # plt.title("BIC")
+    # plt.plot(n_components,BIC)
 
-    plt.xlabel("Number of Distribution")
-    plt.ylabel("BIC Score")
+    # plt.xlabel("Number of Distribution")
+    # plt.ylabel("BIC Score")
 
     # plt.show()
     return ((BIC.index(np.amin(BIC)))+1)
+
+def thresholdGMM(X,n_components,iteration_data):
+
+    thresholds=[]
+    for i in range(n_components-1):
+        a=(iteration_data[-1][i]['Variance']-iteration_data[-1][i+1]['Variance'])
+        b=2*((iteration_data[-1][i]['Variance']*iteration_data[-1][i+1]['Mean'])-(iteration_data[-1][i+1]['Variance']*iteration_data[-1][i]['Mean']))
+        c=(iteration_data[-1][i+1]['Variance']*(iteration_data[-1][i]['Mean'])**2)-(iteration_data[-1][i]['Variance']*(iteration_data[-1][i+1]['Mean'])**2)- \
+            (2*iteration_data[-1][i]['Variance']*iteration_data[-1][i+1]['Variance']*np.log((iteration_data[-1][i]['Weight']*np.sqrt(iteration_data[-1][i+1]['Variance']))\
+                /(iteration_data[-1][i+1]['Weight']*np.sqrt(iteration_data[-1][i]['Variance']))))
+        
+        dis = abs((b**2) - (4*a*c))
+
+        thres1= (-b-np.sqrt(dis))/(2*a)
+        thres2= (-b+np.sqrt(dis))/(2*a)
+
+        if min(X)<thres1<max(X):
+            thresholds.append(thres1)
+        elif min(X)<thres2<max(X):
+            thresholds.append(thres2)
+        else:
+            print("Thresholds are not within the range of data points", thres1,thres2)
+    return(thresholds)
+
+    
