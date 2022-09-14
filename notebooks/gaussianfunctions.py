@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import multivariate_normal
+from scipy.stats import norm
 from sklearn.mixture import GaussianMixture
 import pandas as pd
 
@@ -131,7 +132,6 @@ def PlotGMM(X,iteration_data,plotper_iter:int):
             #Set the x and y label
             plt.xlabel("x")
             plt.ylabel("Probability Density Function (PDF)")
-            plt.ylim(0,15)
             plt.legend(loc="upper left")
 
             plt.show()
@@ -156,27 +156,28 @@ def BIC_gmm(X):
     # plt.show()
     return ((BIC.index(np.amin(BIC)))+1)
 
-def thresholdGMM(X,n_components,iteration_data):
+def findThreshold(X,n_components,iteration_data):
 
+    X_lastiter=iteration_data[-1]
     thresholds=[]
-    for i in range(n_components-1):
-        a=(iteration_data[-1][i]['Variance']-iteration_data[-1][i+1]['Variance'])
-        b=2*((iteration_data[-1][i]['Variance']*iteration_data[-1][i+1]['Mean'])-(iteration_data[-1][i+1]['Variance']*iteration_data[-1][i]['Mean']))
-        c=(iteration_data[-1][i+1]['Variance']*(iteration_data[-1][i]['Mean'])**2)-(iteration_data[-1][i]['Variance']*(iteration_data[-1][i+1]['Mean'])**2)- \
-            (2*iteration_data[-1][i]['Variance']*iteration_data[-1][i+1]['Variance']*np.log((iteration_data[-1][i]['Weight']*np.sqrt(iteration_data[-1][i+1]['Variance']))\
-                /(iteration_data[-1][i+1]['Weight']*np.sqrt(iteration_data[-1][i]['Variance']))))
-        
-        dis = abs((b**2) - (4*a*c))
 
-        thres1= (-b-np.sqrt(dis))/(2*a)
-        thres2= (-b+np.sqrt(dis))/(2*a)
+    for k in range(n_components-1):
+        X_space=np.linspace(min(X),max(X),100)
+        zscore_1=list()
+        zscore_2=list()
+        for i in range(len(X_space)):
+            zscore_1.append((X_space[i]-X_lastiter[k]['Mean'])/(np.sqrt(X_lastiter[k]['Variance'])))
+            zscore_2.append((X_space[i]-X_lastiter[k+1]['Mean'])/(np.sqrt(X_lastiter[k+1]['Variance'])))
+            
+            def area_left(zscore):
+                return norm.cdf(zscore)
+            def area_right(zscore):
+                return 1-norm.cdf(zscore)
 
-        if min(X)<thres1<max(X):
-            thresholds.append(thres1)
-        elif min(X)<thres2<max(X):
-            thresholds.append(thres2)
-        else:
-            print("Thresholds are not within the range of data points", thres1,thres2)
+            area_gaussone = area_right(zscore_1)
+            area_gausstwo = area_left(zscore_2)
+
+            thres = X_space[np.argmin(area_gaussone+area_gausstwo)]
+        thresholds.append(thres)
     return(thresholds)
-
     
