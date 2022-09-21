@@ -140,7 +140,7 @@ def findThreshold(X,n_components,iteration_data):
         thresholds.append(thres)
     return(thresholds)
 
-def PlotGMM(X,iteration_data,plotper_iter:int,thresholds):
+def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,ylimit):
     c=['red','green','blue','magenta']
     gmm_datapoints=np.linspace(np.min(X),np.max(X),100)
     for i in range(len(iteration_data)):
@@ -149,12 +149,17 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds):
             plt.figure(figsize=(8,5))
             plt.title("Iteration {}".format(i))
             plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
-            
+            plt.hist(X,bins=75,density=True)
+
             #Plot the estimated pdf
             for k in range(len(iteration_data[i])):
                 plt.plot(gmm_datapoints, GaussianPDF(gmm_datapoints, iteration_data[i][k]['Mean'], iteration_data[i][k]['Variance']), color=c[k], label="Distribution {}".format(k))
             
-            plt.ylim(0,15)
+            if ylimit==[]:
+                pass
+            else:
+                plt.ylim(0,ylimit)
+                
             #Set the x and y label
             plt.xlabel("x")
             plt.ylabel("Probability Density Function (PDF)")
@@ -176,14 +181,6 @@ def BIC_gmm(X):
 
     BIC=[models.bic(X) for models in gmm_models]
 
-    # plt.figure(figsize=(8,5))
-    # plt.title("BIC")
-    # plt.plot(n_components,BIC)
-
-    # plt.xlabel("Number of Distribution")
-    # plt.ylabel("BIC Score")
-
-    # plt.show()
     return ((BIC.index(np.amin(BIC)))+1)
 
 
