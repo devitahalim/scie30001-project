@@ -77,9 +77,10 @@ def GaussianEM(X,n_components:int, initial_param):
         
         #Maximisation step (M-step):
             #Update the parameters
+            mu=np.sum(posterior[j] * X) / (np.sum(posterior[j]+epsilon))
             new_param={
-                'Mean':np.sum(posterior[j] * X) / (np.sum(posterior[j]+epsilon)),
-                'Variance':np.sum(posterior[j] * np.square(X - initial_param[j]['Mean'])) / (np.sum(posterior[j]+epsilon)),
+                'Mean':mu,
+                'Variance':np.sum(posterior[j] * np.square(X - mu)) / (np.sum(posterior[j]+epsilon)),
                 'Weight':np.mean(posterior[j])
             }
             new_parameters.append(new_param)
@@ -115,7 +116,7 @@ def GaussianEM(X,n_components:int, initial_param):
         iteration_param.append(new_parameters)
     return(iteration_param)
 
-def findThreshold(X,n_components,iteration_data):
+def findThreshold1(X,n_components,iteration_data):
 
     X_lastiter=iteration_data[-1]
     thresholds=[]
@@ -138,6 +139,30 @@ def findThreshold(X,n_components,iteration_data):
 
             thres = X_space[np.argmin(area_gaussone+area_gausstwo)]
         thresholds.append(thres)
+    return(thresholds)
+
+def findThreshold2(X,n_components,iteration_data):
+    X_lastiter=iteration_data[-1]
+
+    thresholds=[]
+    for i in range(n_components-1):
+        a=(X_lastiter[i+1]['Variance']-X_lastiter[i]['Variance'])
+        b=2*((X_lastiter[i]['Variance']*X_lastiter[i+1]['Mean'])-(X_lastiter[i+1]['Variance']*X_lastiter[i]['Mean']))
+        c=(X_lastiter[i+1]['Variance']*(X_lastiter[i]['Mean']**2))-(X_lastiter[i]['Variance']*(X_lastiter[i+1]['Mean']**2))\
+            -(2*X_lastiter[i]['Variance']*X_lastiter[i+1]['Variance']*np.log((X_lastiter[i]['Weight']*np.sqrt(X_lastiter[i+1]['Variance']))\
+                /(X_lastiter[i+1]['Weight']*np.sqrt(X_lastiter[i]['Variance']))))
+
+        dis = abs((b**2) - (4*a*c))
+
+        thres1= (-b-np.sqrt(dis))/(2*a)
+        thres2= (-b+np.sqrt(dis))/(2*a)
+
+        if X_lastiter[i]['Mean']<thres1<X_lastiter[i+1]['Mean']:
+            temp=thres1
+        elif X_lastiter[i]['Mean']<thres2<X_lastiter[i+1]['Mean']:
+            temp=thres2
+        
+        thresholds.append(temp)
     return(thresholds)
 
 def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,ylimit):
