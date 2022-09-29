@@ -7,7 +7,7 @@ import pandas as pd
 
 def GaussianPDF(data, mean:float, var:float):
 
-    pdf_gauss=(1/(np.sqrt(2*np.pi*abs(var))))*np.exp(-(np.square(data - mean)/(2*var)))
+    pdf_gauss=(1/(np.sqrt(2*np.pi*var)))*np.exp(-((np.square(data - mean))/(2*var)))
     return pdf_gauss
 
 def SimulateGMM(n:int, mean1:float, sig1:float, mean2:float, sig2:float):
@@ -51,7 +51,7 @@ def GaussianEM(X,n_components:int, initial_param):
         }
             initial_param.append(init_params)
 
-    epsilon=-1e-6 #to avoid singularities
+    epsilon=-1e-200 #to avoid singularities
     #stopping condition
     mean_delta=1e-6
     var_delta=1e-4
