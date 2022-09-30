@@ -116,6 +116,102 @@ def GaussianEM(X,n_components:int, initial_param):
         iteration_param.append(new_parameters)
     return(iteration_param)
 
+def EMGMM_varconstraint(X,n_components:int, initial_param):
+    
+    if initial_param==[]:
+        def get_spaced_elm(X, n_components):
+            spaced_elm = X[np.round(np.linspace(0, len(X)-1, n_components)).astype(int)]
+            return spaced_elm
+        
+        initial_means=get_spaced_elm(np.sort(X),n_components)
+        
+        initial_param=list()
+        for i in range(n_components):
+            init_params={
+            'Mean':initial_means[i],
+            'Variance': 0.005,
+            'Weight': 1/n_components
+        }
+            initial_param.append(init_params)
+
+    epsilon=-1e-200 #to avoid singularities
+    #stopping condition
+    mean_delta=1e-6
+    var_delta=1e-4
+    weight_delta=1e-8
+
+    max_iteration=50
+    iteration=0
+
+    iteration_param=list()
+
+    while iteration<max_iteration:
+        
+        px_j=[]
+        for j in range(n_components):
+            px_j.append(GaussianPDF(X, initial_param[j]['Mean'], initial_param[j]['Variance']))
+        px_j = np.array(px_j)
+        
+        posterior = []
+        new_parameters=list()
+        for j in range(n_components):
+            #Calculate the probabilities of each data to belong from either gaussian  
+            posterior.append((px_j[j] * initial_param[j]['Weight']) / (np.sum([px_j[i] * initial_param[i]['Weight'] for i in range(n_components)], axis=0)+epsilon))
+        
+        #Maximisation step (M-step):
+            #Update the parameters
+            mu=np.sum(posterior[j] * X) / (np.sum(posterior[j]+epsilon))
+            
+            # Constraint the variance
+            newvar_temp=np.sum(posterior[j] * np.square(X - mu)) / (np.sum(posterior[j]+epsilon))
+            if newvar_temp<0.01:
+                newvar=newvar_temp
+            else:
+                newvar=initial_param[j]['Variance']
+
+            # New parameters
+            new_param={
+                'Mean':mu,
+                'Variance':newvar,
+                'Weight':np.mean(posterior[j])
+            }
+            new_parameters.append(new_param)
+
+        #Calculate difference between parameters
+        mean_diff=list()
+        for i in range (n_components):
+            mean_diff_indiv=(abs(new_parameters[i]['Mean']-initial_param[i]['Mean'])/(abs(initial_param[i]['Mean']+epsilon)))
+            mean_diff.append(mean_diff_indiv)
+
+        var_diff=list()
+        for i in range(n_components):
+            var_diff_indiv=(abs(new_parameters[i]['Variance']-initial_param[i]['Variance'])/abs(initial_param[i]['Variance']))
+            var_diff.append(var_diff_indiv)
+
+        weight_diff=list()
+        for i in range(n_components):
+            weight_diff_indv=(abs(new_parameters[i]['Weight']-initial_param[i]['Weight'])/abs(initial_param[i]['Weight']))
+            weight_diff.append(weight_diff_indv)
+        
+        #Check if difference between iterations is less than the stopping criterion
+        def check_less_than(list, value): 
+            for x in list: 
+                if value <= x: 
+                    return False
+            return True
+
+        # Stop iterations if already satisfy the stopping condition
+        if check_less_than(mean_diff,mean_delta) is True\
+            and check_less_than(var_diff,var_delta) is True\
+            and check_less_than(weight_diff, weight_delta) is True:
+            break
+
+        iteration+=1
+        initial_param=new_parameters
+
+        iteration_param.append(new_parameters)
+    return(iteration_param)
+
 def findThreshold1(X,n_components,iteration_data):
 
     X_lastiter=iteration_data[-1]
