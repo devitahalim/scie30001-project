@@ -40,7 +40,11 @@ def GaussianEM(X,n_components:int, initial_param):
             spaced_elm = X[np.round(np.linspace(0, len(X)-1, n_components)).astype(int)]
             return spaced_elm
         
-        initial_means=get_spaced_elm(np.sort(X),n_components)
+        def get_elm(X,n_components):
+            b=np.linspace(min(X),max(X),n_components)
+            return b
+            
+        initial_means=get_elm(X,n_components)
         
         initial_param=list()
         for i in range(n_components):
@@ -123,7 +127,11 @@ def EMGMM_varconstraint(X,n_components:int, initial_param):
             spaced_elm = X[np.round(np.linspace(0, len(X)-1, n_components)).astype(int)]
             return spaced_elm
         
-        initial_means=get_spaced_elm(np.sort(X),n_components)
+        def get_elm(X,n_components):
+            b=np.linspace(min(X),max(X),n_components)
+            return b
+
+        initial_means=get_elm(X,n_components)
         
         initial_param=list()
         for i in range(n_components):
