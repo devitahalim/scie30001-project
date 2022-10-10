@@ -245,8 +245,10 @@ def findThreshold1(X,n_components,iteration_data):
         thresholds.append(thres)
     return(thresholds)
 
-def findThreshold2(X,n_components,iteration_data):
+def findThreshold2(iteration_data):
+    
     X_lastiter=iteration_data[-1]
+    n_components=len(X_lastiter)
 
     thresholds=[]
     for i in range(n_components-1):
@@ -302,7 +304,7 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,ylimit):
 
 def BIC_gmm(X):
     X=X.reshape(-1,1)
-    n_components=np.arange(1, 11)
+    n_components=np.arange(1, 6)
 
     gmm_models=[None for k in range(len(n_components))]
     for k in range(len(n_components)):
@@ -313,4 +315,17 @@ def BIC_gmm(X):
     return ((BIC.index(np.amin(BIC)))+1)
 
 
+def check_prob(pxj):
     
+    prob_indv= [None for i in range(len(pxj[0]))]
+
+    for i in range(len(pxj[0])):
+        prob_indv[i]=[pxj[j][i] for j in range (len(pxj))]
+
+    # Assess the probability
+    
+    low_prob_on=list()
+    for i in range (len(pxj[0])):
+        if any(j>0.01 for j in prob_indv[i])==False:
+            low_prob_on.append(i)
+    return (len(low_prob_on))
