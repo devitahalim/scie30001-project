@@ -332,25 +332,29 @@ def check_prob(pxj):
 
 # This one consider distance from mean instead of fixed likelihood value
 def check_prob2(pxj,iteration_data):
+    
     last_iter=iteration_data[-1]
+    # Rearrange array into individual likelihoof of each data points
     prob_indv= [None for i in range(len(pxj[0]))]
-
     for i in range(len(pxj[0])):
         prob_indv[i]=[pxj[j][i] for j in range (len(pxj))]
 
-    #Calculate the probability
+    # Calculate the minimum likelihood for each gaussian (99.7%)
     min_likelihood=list()
     for j in range(len(last_iter)):
         indv_likelihood=GaussianPDF((last_iter[j]['Mean']+(2.967738*np.sqrt(last_iter[j]['Variance']))),last_iter[j]['Mean'],last_iter[j]['Variance'])
         min_likelihood.append(indv_likelihood)
     
-    lowprob=list()
+    # Create list of elements that have high likelihood of belonging to any gaussian
+    highprob=list()
     for i in range (len(pxj[0])):
         indv_high_prob=[l1 for l1,l2 in zip(prob_indv[i],min_likelihood) if l1>l2]
-        lowprob.append(indv_high_prob)
+        highprob.append(indv_high_prob)
+    
+    # Identify the one with no adequate likelihood of belonging to any gaussian
     n_lowprob=list()
-    for i in range(len(lowprob)):
-        if lowprob[i]==[]:
+    for i in range(len(highprob)):
+        if highprob[i]==[]:
             n_lowprob.append(i)
 
     return (len(n_lowprob))
