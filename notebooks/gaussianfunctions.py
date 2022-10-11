@@ -329,3 +329,28 @@ def check_prob(pxj):
         if any(j>0.01 for j in prob_indv[i])==False:
             low_prob_on.append(i)
     return (len(low_prob_on))
+
+# This one consider distance from mean instead of fixed likelihood value
+def check_prob2(pxj,iteration_data):
+    last_iter=iteration_data[-1]
+    prob_indv= [None for i in range(len(pxj[0]))]
+
+    for i in range(len(pxj[0])):
+        prob_indv[i]=[pxj[j][i] for j in range (len(pxj))]
+
+    #Calculate the probability
+    min_likelihood=list()
+    for j in range(len(last_iter)):
+        indv_likelihood=GaussianPDF((last_iter[j]['Mean']+(2.967738*np.sqrt(last_iter[j]['Variance']))),last_iter[j]['Mean'],last_iter[j]['Variance'])
+        min_likelihood.append(indv_likelihood)
+    
+    lowprob=list()
+    for i in range (len(pxj[0])):
+        indv_high_prob=[l1 for l1,l2 in zip(prob_indv[i],min_likelihood) if l1>l2]
+        lowprob.append(indv_high_prob)
+    n_lowprob=list()
+    for i in range(len(lowprob)):
+        if lowprob[i]==[]:
+            n_lowprob.append(i)
+
+    return (len(n_lowprob))
