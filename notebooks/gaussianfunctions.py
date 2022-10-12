@@ -218,7 +218,7 @@ def EMGMM_varconstraint(X,n_components:int, initial_param):
         initial_param=new_parameters
 
         iteration_param.append(new_parameters)
-    return(iteration_param)
+    return(iteration_param,px_j)
 
 def findThreshold1(X,n_components,iteration_data):
 
@@ -272,7 +272,7 @@ def findThreshold2(iteration_data):
     return(thresholds)
 
 def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,ylimit):
-    c=['red','green','blue','magenta']
+    c=['red','green','blue','magenta','darkorange','slategray']
     gmm_datapoints=np.linspace(np.min(X),np.max(X),100)
     for i in range(len(iteration_data)):
         if i%plotper_iter==0 or i==len(iteration_data)-1:
@@ -358,3 +358,24 @@ def check_prob2(pxj,iteration_data):
             n_lowprob.append(i)
 
     return (len(n_lowprob))
+
+def check_mean_dis(iteration_data):
+    # Create list of means
+    means_list=list()
+    for i in range (len(iteration_data[-1])):
+        means_list.append(iteration_data[-1][i]['Mean'])
+    means_list.sort()
+    
+    # Compute the difference between means of adjacent Gaussians
+    means_diff=list()
+    for i in range (len(means_list)-1):
+        diff= np.subtract(means_list[i+1],means_list[i])
+        means_diff.append(diff)
+    
+    # Check if distance between means is less than 0.4 or not, if yes, return False.
+    def all_meansdiff(means_diff):
+        for i in means_diff:
+            if i <0.4:
+                return False
+        return True
+    return (all_meansdiff(means_diff))
