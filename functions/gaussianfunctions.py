@@ -264,18 +264,19 @@ def findThreshold2(iteration_data):
         thres2= (-b+np.sqrt(dis))/(2*a)
 
         if X_lastiter[i]['Mean']<thres1<X_lastiter[i+1]['Mean']:
-            temp=thres1
+            thresholds.append(thres1)
         elif X_lastiter[i]['Mean']<thres2<X_lastiter[i+1]['Mean']:
-            temp=thres2
+            thresholds.append(thres2)
         
-        thresholds.append(temp)
+        
     return(thresholds)
 
 def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,ylimit):
     c=['red','green','blue','magenta','darkorange','slategray']
     gmm_datapoints=np.linspace(np.min(X),np.max(X),100)
     for i in range(len(iteration_data)):
-        if i%plotper_iter==0 or i==len(iteration_data)-1:
+        if  i==len(iteration_data)-1:
+            # i%plotper_iter==0
             #Set figure size, title, and plot the data points
             plt.figure(figsize=(8,5))
             plt.title("Iteration {}".format(i))
@@ -375,7 +376,7 @@ def check_mean_dis(iteration_data):
     # Check if distance between means is less than 0.4 or not, if yes, return False.
     def all_meansdiff(means_diff):
         for i in means_diff:
-            if i <0.4:
+            if i <0.2:
                 return False
         return True
     return (all_meansdiff(means_diff))
