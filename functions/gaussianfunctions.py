@@ -384,7 +384,7 @@ def check_mean_dis(iteration_data):
     for i in range(len(means_list)):
         min_distance.append(2.24*sd_list[i])
 
-    # Check if distance between means is less than 0.4 or not, if yes, return False.
+    # Check if distance between means is less than 2.24 sd from means or not, if yes, return False.
     def all_meansdiff(means_diff):
         for i in range(len(means_diff)):
             if means_diff[i]<(min_distance[i]+min_distance[i+1]):
