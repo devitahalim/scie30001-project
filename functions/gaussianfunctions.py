@@ -271,15 +271,15 @@ def findThreshold2(iteration_data):
         
     return(thresholds)
 
-def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,ylimit):
+def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit):
     c=['red','green','blue','magenta','darkorange','slategray']
     gmm_datapoints=np.linspace(np.min(X),np.max(X),100)
     for i in range(len(iteration_data)):
         if  i==len(iteration_data)-1:
             # i%plotper_iter==0
             #Set figure size, title, and plot the data points
-            plt.figure(figsize=(8,5))
-            plt.title("Iteration {}".format(i))
+            fig=plt.figure(figsize=(8,5))
+            plt.title(title_name)
             plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
             plt.hist(X,bins=75,density=True)
 
@@ -301,7 +301,8 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,ylimit):
                 for i in range (len(thresholds)):
                     plt.axvline(thresholds[i],c='red',ls='--',lw=0.5)
 
-            plt.show()
+            
+            return(fig)
 
 def BIC_gmm(X):
     X=X.reshape(-1,1)
@@ -358,9 +359,42 @@ def check_prob2(pxj,iteration_data):
         if highprob[i]==[]:
             n_lowprob.append(i)
 
-    return (len(n_lowprob))
+    return (len(n_lowprob),n_lowprob)
 
 def check_mean_dis(iteration_data):
+    # Create list of means
+    means_list=list()
+    for i in range (len(iteration_data[-1])):
+        means_list.append(iteration_data[-1][i]['Mean'])
+    means_list.sort()
+    
+    sd_list=list()
+    for i in range (len(iteration_data[-1])):
+        sd_list.append(np.sqrt(iteration_data[-1][i]['Variance']))
+    sd_list.sort()
+
+    # Compute the difference between means of adjacent Gaussians
+    means_diff=list()
+    for i in range (len(means_list)-1):
+        diff= np.subtract(means_list[i+1],means_list[i])
+        means_diff.append(diff)
+    
+    # 4 sd away
+    min_distance=list()
+    for i in range(len(means_list)):
+        min_distance.append(2.24*sd_list[i])
+
+    # Check if distance between means is less than 0.4 or not, if yes, return False.
+    def all_meansdiff(means_diff):
+        for i in range(len(means_diff)):
+            if means_diff[i]<(min_distance[i]+min_distance[i+1]):
+                return False
+            # elif means_diff[i]<min_distance[i+1]:
+            #     return False
+        return True
+    return (all_meansdiff(means_diff))
+
+def check_gaps_means(iteration_data):
     # Create list of means
     means_list=list()
     for i in range (len(iteration_data[-1])):
@@ -373,10 +407,10 @@ def check_mean_dis(iteration_data):
         diff= np.subtract(means_list[i+1],means_list[i])
         means_diff.append(diff)
     
-    # Check if distance between means is less than 0.4 or not, if yes, return False.
-    def all_meansdiff(means_diff):
-        for i in means_diff:
-            if i <0.2:
-                return False
-        return True
-    return (all_meansdiff(means_diff))
+    def check_gaps(mean_diff):
+        for i in range(len(mean_diff)):
+            if mean_diff[i]>(1.5*min(mean_diff)):
+                return(True,i)
+        return(False,'None')
+    
+    return (check_gaps(means_diff))
