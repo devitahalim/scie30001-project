@@ -6,8 +6,8 @@ from sklearn.mixture import GaussianMixture
 import pandas as pd
 
 def GaussianPDF(data, mean:float, var:float):
-
-    pdf_gauss=(1/(np.sqrt(2*np.pi*var)))*np.exp(-((np.square(data - mean))/(2*var)))
+    eps=1e-300
+    pdf_gauss=(1/(np.sqrt(2*np.pi*var)+eps))*np.exp(-((np.square(data - mean))/((2*var)+eps)))
     return pdf_gauss
 
 def SimulateGMM(n:int, mean1:float, sig1:float, mean2:float, sig2:float):
@@ -142,7 +142,7 @@ def EMGMM_varconstraint(X,n_components:int, initial_param):
         }
             initial_param.append(init_params)
 
-    epsilon=-1e-200 #to avoid singularities
+    epsilon=-1e-300 #to avoid singularities
     #stopping condition
     mean_delta=1e-6
     var_delta=1e-4
@@ -193,12 +193,12 @@ def EMGMM_varconstraint(X,n_components:int, initial_param):
 
         var_diff=list()
         for i in range(n_components):
-            var_diff_indiv=(abs(new_parameters[i]['Variance']-initial_param[i]['Variance'])/abs(initial_param[i]['Variance']))
+            var_diff_indiv=(abs(new_parameters[i]['Variance']-initial_param[i]['Variance'])/(abs(initial_param[i]['Variance']+epsilon)))
             var_diff.append(var_diff_indiv)
 
         weight_diff=list()
         for i in range(n_components):
-            weight_diff_indv=(abs(new_parameters[i]['Weight']-initial_param[i]['Weight'])/abs(initial_param[i]['Weight']))
+            weight_diff_indv=(abs(new_parameters[i]['Weight']-initial_param[i]['Weight'])/(abs(initial_param[i]['Weight']+epsilon)))
             weight_diff.append(weight_diff_indv)
         
         #Check if difference between iterations is less than the stopping criterion
@@ -246,7 +246,7 @@ def findThreshold1(X,n_components,iteration_data):
     return(thresholds)
 
 def findThreshold2(iteration_data):
-    
+    epsilon=1e-300
     X_lastiter=iteration_data[-1]
     n_components=len(X_lastiter)
 
@@ -255,8 +255,8 @@ def findThreshold2(iteration_data):
         a=(X_lastiter[i+1]['Variance']-X_lastiter[i]['Variance'])
         b=2*((X_lastiter[i]['Variance']*X_lastiter[i+1]['Mean'])-(X_lastiter[i+1]['Variance']*X_lastiter[i]['Mean']))
         c=(X_lastiter[i+1]['Variance']*(X_lastiter[i]['Mean']**2))-(X_lastiter[i]['Variance']*(X_lastiter[i+1]['Mean']**2))\
-            -(2*X_lastiter[i]['Variance']*X_lastiter[i+1]['Variance']*np.log((X_lastiter[i]['Weight']*np.sqrt(X_lastiter[i+1]['Variance']))\
-                /(X_lastiter[i+1]['Weight']*np.sqrt(X_lastiter[i]['Variance']))))
+            -(2*X_lastiter[i]['Variance']*X_lastiter[i+1]['Variance']*np.log((X_lastiter[i]['Weight']*(np.sqrt(X_lastiter[i+1]['Variance'])+epsilon))\
+                /(X_lastiter[i+1]['Weight']*(np.sqrt(X_lastiter[i]['Variance'])+epsilon))))
 
         dis = abs((b**2) - (4*a*c))
 
@@ -362,17 +362,20 @@ def check_prob2(pxj,iteration_data):
     return (len(n_lowprob),n_lowprob)
 
 def check_mean_dis(iteration_data):
+    em_last=iteration_data[-1]
+    em_last=sorted(em_last, key=lambda x:x['Mean'])
+
     # Create list of means
     means_list=list()
-    for i in range (len(iteration_data[-1])):
-        means_list.append(iteration_data[-1][i]['Mean'])
-    means_list.sort()
+    for i in range (len(em_last)):
+        means_list.append(em_last[i]['Mean'])
+    
+    
     
     sd_list=list()
-    for i in range (len(iteration_data[-1])):
-        sd_list.append(np.sqrt(iteration_data[-1][i]['Variance']))
-    sd_list.sort()
-
+    for i in range (len(em_last)):
+        sd_list.append(np.sqrt(em_last[i]['Variance']))
+    
     # Compute the difference between means of adjacent Gaussians
     means_diff=list()
     for i in range (len(means_list)-1):
@@ -382,15 +385,17 @@ def check_mean_dis(iteration_data):
     # 4 sd away
     min_distance=list()
     for i in range(len(means_list)):
-        min_distance.append(2.24*sd_list[i])
+        if sd_list[i]>0:
+            min_distance.append(2.24*sd_list[i])
+        elif sd_list[i]<=0:
+            min_distance.append(3*sd_list[i-1])
+    
 
     # Check if distance between means is less than 2.24 sd from means or not, if yes, return False.
     def all_meansdiff(means_diff):
         for i in range(len(means_diff)):
             if means_diff[i]<(min_distance[i]+min_distance[i+1]):
                 return False
-            # elif means_diff[i]<min_distance[i+1]:
-            #     return False
         return True
     return (all_meansdiff(means_diff))
 
@@ -414,3 +419,30 @@ def check_gaps_means(iteration_data):
         return(False,'None')
     
     return (check_gaps(means_diff))
+
+def check_gaps_below(iteration_data):
+    # Create list of means
+    em_last=iteration_data[-1]
+    em_last=sorted(em_last, key=lambda x:x['Mean'])
+    
+    means_list=list()
+    for i in range (len(em_last)):
+        means_list.append(em_last[i]['Mean'])
+    
+    # Compute the difference between means of adjacent Gaussians
+    means_diff=list()
+    for i in range (len(means_list)-1):
+        diff= np.subtract(means_list[i+1],means_list[i])
+        means_diff.append(diff)
+    
+    def check_below(mean_diff):
+        smallest_mean=min(means_list)
+        if smallest_mean>0.2 and smallest_mean>(1.5*min(mean_diff)):
+            return(False,1)
+        elif smallest_mean>0.2:
+            return(False,0)
+        else:
+            return(True)
+    
+    return(check_below(means_diff))
+    
