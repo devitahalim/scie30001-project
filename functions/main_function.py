@@ -95,7 +95,6 @@ threshold_data=threshold_all
 with open('/Users/devitahalim/Documents/GitHub/scie30001-project/output/output_threshold.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerow(threshold_header)
-    # Use writerows() not writerow()
     writer.writerows(threshold_data)
 
 # CSV for low probability
@@ -108,5 +107,4 @@ for i in range(len(KIR)):
 with open('/Users/devitahalim/Documents/GitHub/scie30001-project/output/output_outliers.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerow(lowprob_header)
-    # Use writerows() not writerow()
     writer.writerows(lowprob_data)
