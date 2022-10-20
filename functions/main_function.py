@@ -89,6 +89,7 @@ for i in KIR:
 for i in range (len(KIR)):
     threshold_all[i].insert(0,KIR[i])
 
+# CSV for thresholds
 threshold_header=["","0-1","1-2","2-3","3-4","4-5","5-6"]
 threshold_data=threshold_all
 with open('/Users/devitahalim/Documents/GitHub/scie30001-project/output/output_threshold.csv', 'w') as file:
@@ -97,7 +98,7 @@ with open('/Users/devitahalim/Documents/GitHub/scie30001-project/output/output_t
     # Use writerows() not writerow()
     writer.writerows(threshold_data)
 
-# CSV for low likelihood samples
+# CSV for low probability
 lowprob_header=["","Sample number with low likelihood"]
 lowprob_data=list()
 for i in range(len(KIR)):
