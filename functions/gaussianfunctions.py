@@ -271,9 +271,9 @@ def findThreshold2(iteration_data):
         
     return(thresholds)
 
-def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit):
+def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit,mean_ghost,var_ghost):
     c=['red','green','blue','magenta','darkorange','slategray']
-    gmm_datapoints=np.linspace(np.min(X),np.max(X),100)
+    gmm_datapoints=np.linspace(0,np.max(X),100)
     for i in range(len(iteration_data)):
         if  i==len(iteration_data)-1:
             # i%plotper_iter==0
@@ -283,9 +283,10 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit):
             plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
             plt.hist(X,bins=75,density=True)
 
+            
             #Plot the estimated pdf
             for k in range(len(iteration_data[i])):
-                plt.plot(gmm_datapoints, GaussianPDF(gmm_datapoints, iteration_data[i][k]['Mean'], iteration_data[i][k]['Variance']), color=c[k], label="Distribution {}".format(k))
+                plt.plot(gmm_datapoints,GaussianPDF(gmm_datapoints, iteration_data[i][k]['Mean'], iteration_data[i][k]['Variance']), color=c[k], label="Distribution {}".format(k))
             
             if ylimit==[]:
                 pass
@@ -299,8 +300,15 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit):
             
             if i==len(iteration_data)-1:
                 for i in range (len(thresholds)):
-                    plt.axvline(thresholds[i],c='red',ls='--',lw=0.5)
-
+                    plt.axvline(thresholds[i],c='red',ls='--',lw=0.5,label="Thresholds")
+            
+            # Plot ghost gaussian
+            if mean_ghost==[]:
+                pass
+            else:
+                gmm_datapoints2 = np.linspace(0,np.max(X),100)
+                for i in range(len(mean_ghost)):
+                    plt.plot(gmm_datapoints2,GaussianPDF(gmm_datapoints2, mean_ghost[i], var_ghost[i]), color='black', linestyle='dashed', label="Possible missing distribution")
             
             return(fig)
 

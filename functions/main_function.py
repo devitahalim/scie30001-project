@@ -36,14 +36,22 @@ for i in KIR:
     # Thresholds
     thresholds=gauss.findThreshold2(em)
 
-    
+    mean_ghost=[]
+    var_ghost=[]
     # Check threshold of 0 copies
     if gauss.check_gaps_below(em)==(False,0):
-        thresholds.append(0.1)
+        mean_ghost.append(1e-4)
+        var_ghost.append(1e-6)
+        thresholds.append(0.07277145626097836)
     elif gauss.check_gaps_below(em)==(False,1):
-        thresholds.append(0.1)
         last_iter=em[-1]
+        mean_ghost.append(1e-4)
+        var_ghost.append(1e-6)
+        thresholds.append(0.07277145626097836)
+        
         new_thres=last_iter[0]['Mean']-(3.89*np.sqrt(last_iter[0]['Variance']))
+        mean_ghost.append((min(thresholds)+new_thres)/2)
+        var_ghost.append((last_iter[0]['Variance']))
         thresholds.append(new_thres)   
 
     # Check if there is "double gap", add threshold if yes.
@@ -54,11 +62,13 @@ for i in KIR:
         dis_thres=extra_threshold_1-thresholds[-1]
         extra_threshold_2=last_iter[gauss_index+1]['Mean']-(3.89*np.sqrt(last_iter[gauss_index+1]['Variance']))
         thresholds=thresholds[:-1]
+
+        mean_ghost.append((extra_threshold_1+extra_threshold_2)/2)
+        var_ghost.append(((extra_threshold_2-extra_threshold_1)/6.58)**2)
+
         thresholds.append(extra_threshold_1)
         thresholds.append(extra_threshold_2)
     thresholds.sort()
-    
-    print(i,thresholds)
 
     threshold_all.append(thresholds)
 
@@ -71,7 +81,7 @@ for i in KIR:
     data_lowprob_all.append(lowprob_sample_number)
     
     #Output the figures
-    fig=gauss.PlotGMM(X,em,50,thresholds,i,10)
+    fig=gauss.PlotGMM(X,em,50,thresholds,i,10,mean_ghost,var_ghost)
     output_path= "/Users/devitahalim/Documents/GitHub/scie30001-project/output/plots/plot_"
     fig.savefig(output_path+(i))
 
