@@ -280,7 +280,7 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit,m
             #Set figure size, title, and plot the data points
             fig=plt.figure(figsize=(8,5))
             plt.title(title_name)
-            plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
+            # plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
             plt.hist(X,bins=75,density=True)
 
             
@@ -294,13 +294,18 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit,m
                 plt.ylim(0,ylimit)
                 
             #Set the x and y label
-            plt.xlabel("x")
-            plt.ylabel("Probability Density Function (PDF)")
-            plt.legend(loc="upper left")
+            plt.xlabel("{}/KIR3DL3 Ratio".format(title_name))
+            plt.ylabel("Density")
+            
             
             if i==len(iteration_data)-1:
+        
                 for i in range (len(thresholds)):
-                    plt.axvline(thresholds[i],c='red',ls='--',lw=0.5,label="Thresholds")
+                    if i==0:
+                        label_name="Thresholds"
+                    else:
+                        label_name=None
+                    plt.axvline(thresholds[i],c='red',ls='--',lw=0.5,label=label_name)
             
             # Plot ghost gaussian
             if mean_ghost==[]:
@@ -310,11 +315,13 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit,m
                 for i in range(len(mean_ghost)):
                     plt.plot(gmm_datapoints2,GaussianPDF(gmm_datapoints2, mean_ghost[i], var_ghost[i]), color='black', linestyle='dashed', label="Possible missing distribution")
             
+            
+            plt.legend(loc="upper right")
             return(fig)
 
 def BIC_gmm(X):
     X=X.reshape(-1,1)
-    n_components=np.arange(1, 6)
+    n_components=np.arange(1, 7)
 
     gmm_models=[None for k in range(len(n_components))]
     for k in range(len(n_components)):
@@ -390,7 +397,7 @@ def check_mean_dis(iteration_data):
         diff= np.subtract(means_list[i+1],means_list[i])
         means_diff.append(diff)
     
-    # 4 sd away
+    # 2.24 sd away
     min_distance=list()
     for i in range(len(means_list)):
         if sd_list[i]>0:
