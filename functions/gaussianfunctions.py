@@ -286,7 +286,7 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit,m
             
             #Plot the estimated pdf
             for k in range(len(iteration_data[i])):
-                plt.plot(gmm_datapoints,GaussianPDF(gmm_datapoints, iteration_data[i][k]['Mean'], iteration_data[i][k]['Variance']), color=c[k], label="Distribution {}".format(k))
+                plt.plot(gmm_datapoints,GaussianPDF(gmm_datapoints, iteration_data[i][k]['Mean'], iteration_data[i][k]['Variance']), color=c[k], label="Distribution {}".format(k+1))
             
             if ylimit==[]:
                 pass
