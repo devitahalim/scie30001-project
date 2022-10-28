@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.mixture import GaussianMixture
 import pandas as pd
@@ -17,7 +16,7 @@ for i in KIR:
     X=B["{}".format(i)].to_numpy()
     
     def main(X):
-
+        global em,pxj
         n_components=gauss.BIC_gmm(X)
         low_prob_proportion=len(X)
         while n_components<6:

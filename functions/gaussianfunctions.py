@@ -220,9 +220,10 @@ def EMGMM_varconstraint(X,n_components:int, initial_param):
         iteration_param.append(new_parameters)
     return(iteration_param,px_j)
 
-def findThreshold1(X,n_components,iteration_data):
+def findThreshold1(X,iteration_data):
 
     X_lastiter=iteration_data[-1]
+    n_components=len(X_lastiter)
     thresholds=[]
 
     for k in range(n_components-1):
@@ -281,7 +282,7 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit,m
             fig=plt.figure(figsize=(8,5))
             plt.title(title_name)
             # plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
-            plt.hist(X,bins=75,density=True)
+            plt.hist(X,bins=100,density=True)
 
             
             #Plot the estimated pdf
