@@ -1,3 +1,5 @@
+import time
+start_time = time.time()
 import numpy as np
 from sklearn.mixture import GaussianMixture
 import pandas as pd
@@ -107,3 +109,5 @@ with open('/Users/devitahalim/Documents/GitHub/scie30001-project/output/output_o
     writer = csv.writer(file)
     writer.writerow(lowprob_header)
     writer.writerows(lowprob_data)
+
+print("Process finished --- %s seconds ---" % (time.time() - start_time))

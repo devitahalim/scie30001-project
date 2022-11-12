@@ -282,7 +282,7 @@ def PlotGMM(X,iteration_data,plotper_iter:int,thresholds,title_name:str,ylimit,m
             fig=plt.figure(figsize=(8,5))
             plt.title(title_name)
             # plt.scatter(X, [0.005] * len(X), color='mediumslateblue', s=15, marker="|", label="Data points")
-            plt.hist(X,bins=100,density=True)
+            plt.hist(X,bins=80,density=True)
 
             
             #Plot the estimated pdf
